@@ -254,8 +254,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Contact
 
 For questions or support:
-- Email: your.email@example.com
-- GitHub: @yourusername
+- Email: zezomowafe2@gmail.com
+- GitHub: @ZeyadMowafe
 
 ---
 
