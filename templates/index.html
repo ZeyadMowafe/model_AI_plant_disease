@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تشخيص أمراض النباتات - Plant Disease Detection</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            padding: 20px 0;
+        }
+        
+        .main-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .header-section {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header-section h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        
+        .header-section p {
+            margin: 10px 0 0 0;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .upload-section {
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .file-drop-area {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 300px;
+            padding: 20px;
+            border: 3px dashed #4CAF50;
+            border-radius: 15px;
+            background: rgba(76, 175, 80, 0.05);
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-drop-area:hover {
+            background: rgba(76, 175, 80, 0.1);
+            border-color: #45a049;
+        }
+        
+        .file-drop-area.dragover {
+            background: rgba(76, 175, 80, 0.15);
+            border-color: #2e7d32;
+        }
+        
+        .file-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 100%;
+            cursor: pointer;
+            opacity: 0;
+        }
+        
+        .file-msg {
+            text-align: center;
+        }
+        
+        .file-msg i {
+            font-size: 3rem;
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+        
+        .file-msg h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .file-msg p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .btn-upload {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-upload:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .preview-section {
+            display: none;
+            padding: 30px;
+            border-top: 1px solid #eee;
+        }
+        
+        .image-preview {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .result-section {
+            display: none;
+            padding: 30px;
+            border-top: 1px solid #eee;
+            background: rgba(76, 175, 80, 0.05);
+        }
+        
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .confidence-bar {
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ffaa00, #4CAF50);
+            transition: width 0.8s ease;
+        }
+        
+        .status-section {
+            padding: 20px;
+            text-align: center;
+            background: rgba(0,0,0,0.02);
+        }
+        
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .status-online {
+            background: rgba(76, 175, 80, 0.1);
+            color: #2e7d32;
+        }
+        
+        .status-offline {
+            background: rgba(244, 67, 54, 0.1);
+            color: #c62828;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            display: none;
+            background: rgba(244, 67, 54, 0.1);
+            color: #c62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #f44336;
+        }
+        
+        .success-message {
+            background: rgba(76, 175, 80, 0.1);
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        @media (max-width: 768px) {
+            .header-section h1 {
+                font-size: 2rem;
+            }
+            
+            .upload-section {
+                padding: 20px;
+            }
+            
+            .file-drop-area {
+                height: 250px;
+            }
+        }
+        
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .info-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .info-card i {
+            font-size: 2rem;
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="main-card">
+                    <!-- Header -->
+                    <div class="header-section">
+                        <h1><i class="fas fa-leaf"></i> تشخيص أمراض النباتات</h1>
+                        <p>ارفع صورة نبات للحصول على تشخيص فوري ونصائح العلاج</p>
+                    </div>
+                    
+                    <!-- Status -->
+                    <div class="status-section">
+                        {% if model_loaded %}
+                            <div class="status-indicator status-online">
+                                <i class="fas fa-check-circle"></i>
+                                <span>النموذج جاهز - {{num_classes}} صنف مدعوم</span>
+                            </div>
+                        {% else %}
+                            <div class="status-indicator status-offline">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <span>النموذج غير متاح - يرجى تدريب النموذج أولاً</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Upload Section -->
+                    <div class="upload-section">
+                        <div class="file-drop-area" id="fileDropArea">
+                            <input type="file" class="file-input" id="fileInput" accept=".png,.jpg,.jpeg,.gif">
+                            <div class="file-msg" id="fileMsg">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <h3>اسحب الصورة هنا أو انقر للاختيار</h3>
+                                <p>يدعم: PNG, JPG, JPEG, GIF (حد أقصى 16MB)</p>
+                                <button class="btn btn-upload">اختر صورة</button>
+                            </div>
+                        </div>
+                        
+                        <div class="error-message" id="errorMessage"></div>
+                    </div>
+                    
+                    <!-- Loading -->
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <h4>جاري تحليل الصورة...</h4>
+                        <p>قد تستغرق هذه العملية بضع ثوان</p>
+                    </div>
+                    
+                    <!-- Preview Section -->
+                    <div class="preview-section" id="previewSection">
+                        <div class="row">
+                            <div class="col-md-6 text-center">
+                                <h4>الصورة المرفوعة</h4>
+                                <img class="image-preview" id="imagePreview" alt="معاينة الصورة">
+                            </div>
+                            <div class="col-md-6">
+                                <h4>معلومات الملف</h4>
+                                <p><strong>اسم الملف:</strong> <span id="fileName"></span></p>
+                                <p><strong>حجم الملف:</strong> <span id="fileSize"></span></p>
+                                <p><strong>وقت الرفع:</strong> <span id="uploadTime"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Results Section -->
+                    <div class="result-section" id="resultSection">
+                        <h3 class="text-center mb-4"><i class="fas fa-microscope"></i> نتائج التشخيص</h3>
+                        
+                        <div class="result-card">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5><i class="fas fa-seedling"></i> نوع النبات</h5>
+                                    <p class="h4 text-success" id="plantType">-</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5><i class="fas fa-bug"></i> حالة النبات</h5>
+                                    <p class="h4" id="diseaseType">-</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="result-card">
+                            <h5><i class="fas fa-chart-bar"></i> مستوى الثقة</h5>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" id="confidenceBar" style="width: 0%"></div>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span id="confidenceText">0%</span>
+                                <span id="confidenceLevel">-</span>
+                            </div>
+                        </div>
+                        
+                        <div class="result-card">
+                            <h5><i class="fas fa-prescription-bottle-alt"></i> نصائح العلاج</h5>
+                            <div class="success-message">
+                                <p id="treatmentAdvice">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Info Cards -->
+                    <div class="upload-section">
+                        <div class="info-cards">
+                            <div class="info-card">
+                                <i class="fas fa-camera"></i>
+                                <h5>جودة الصورة</h5>
+                                <p>استخدم صور واضحة وعالية الجودة للحصول على أفضل النتائج</p>
+                            </div>
+                            <div class="info-card">
+                                <i class="fas fa-leaf"></i>
+                                <h5>أوراق النبات</h5>
+                                <p>ركز على الأوراق المصابة مع إظهار الأعراض بوضوح</p>
+                            </div>
+                            <div class="info-card">
+                                <i class="fas fa-lightbulb"></i>
+                                <h5>الإضاءة</h5>
+                                <p>تأكد من وجود إضاءة جيدة وتجنب الظلال</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const fileDropArea = document.getElementById('fileDropArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileMsg = document.getElementById('fileMsg');
+        const errorMessage = document.getElementById('errorMessage');
+        const loading = document.getElementById('loading');
+        const previewSection = document.getElementById('previewSection');
+        const resultSection = document.getElementById('resultSection');
+        const imagePreview = document.getElementById('imagePreview');
+
+        // File drop events
+        fileDropArea.addEventListener('click', () => fileInput.click());
+        fileDropArea.addEventListener('dragover', handleDragOver);
+        fileDropArea.addEventListener('dragleave', handleDragLeave);
+        fileDropArea.addEventListener('drop', handleDrop);
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            fileDropArea.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            fileDropArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            fileDropArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            // Reset previous results
+            hideError();
+            previewSection.style.display = 'none';
+            resultSection.style.display = 'none';
+            
+            // Validate file
+            const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
+            const maxSize = 16 * 1024 * 1024; // 16MB
+            
+            if (!validTypes.includes(file.type)) {
+                showError('نوع الملف غير مدعوم. يرجى استخدام PNG, JPG, JPEG, أو GIF');
+                return;
+            }
+            
+            if (file.size > maxSize) {
+                showError('حجم الملف كبير جداً. الحد الأقصى 16MB');
+                return;
+            }
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('fileSize').textContent = formatFileSize(file.size);
+                document.getElementById('uploadTime').textContent = new Date().toLocaleString('ar');
+                previewSection.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+            
+            // Upload file
+            uploadFile(file);
+        }
+
+        function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            loading.style.display = 'block';
+            
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    showError(data.error || 'حدث خطأ في تحليل الصورة');
+                }
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                console.error('Error:', error);
+                showError('حدث خطأ في الاتصال بالخادم');
+            });
+        }
+
+        function displayResults(data) {
+            // Update result elements
+            document.getElementById('plantType').textContent = data.plant;
+            document.getElementById('diseaseType').textContent = data.disease;
+            document.getElementById('diseaseType').className = data.disease.toLowerCase().includes('healthy') ? 'h4 text-success' : 'h4 text-warning';
+            
+            // Update confidence
+            const confidence = parseFloat(data.confidence.replace('%', ''));
+            document.getElementById('confidenceText').textContent = data.confidence;
+            document.getElementById('confidenceLevel').textContent = data.confidence_level;
+            document.getElementById('confidenceBar').style.width = confidence + '%';
+            
+            // Update treatment
+            document.getElementById('treatmentAdvice').textContent = data.treatment;
+            
+            // Show results
+            resultSection.style.display = 'block';
+            
+            // Scroll to results
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html>

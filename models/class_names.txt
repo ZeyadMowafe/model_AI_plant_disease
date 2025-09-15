@@ -1,0 +1,15 @@
+Pepper___bell____Bacterial_spot
+Pepper___bell____healthy
+Potato____Early_blight
+Potato____Late_blight
+Potato____healthy
+Tomato_Bacterial_spot
+Tomato_Early_blight
+Tomato_Late_blight
+Tomato_Leaf_Mold
+Tomato_Septoria_leaf_spot
+Tomato_Spider_mites_Two_spotted_spider_mite
+Tomato___Target_Spot
+Tomato___Tomato_YellowLeaf___Curl_Virus
+Tomato___Tomato_mosaic_virus
+Tomato_healthy
